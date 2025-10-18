@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Word Forms Luyện Thi Lớp 10</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .drag-item {
+            cursor: grab;
+            transition: all 0.2s ease-in-out;
+            user-select: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .drag-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        .drop-zone {
+            min-width: 150px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e5e7eb; /* Gray-200 */
+            border: 2px dashed #9ca3af; /* Gray-400 */
+            border-radius: 0.5rem;
+            transition: all 0.3s ease-in-out;
+            padding: 0 8px;
+            margin: 0 4px;
+        }
+        .drop-zone.hover {
+            background-color: #d1d5db; /* Gray-300 on hover */
+            border-color: #4b5563; /* Gray-600 */
+        }
+        .drop-zone.correct {
+            background-color: #d1fae5; /* Green-100 */
+            border-color: #34d399; /* Green-400 */
+            color: #065f46; /* Green-800 */
+            font-weight: 600;
+            animation: bounceIn 0.5s ease-out;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .drop-zone.filled {
+            border: none;
+            background-color: transparent;
+            min-width: unset;
+        }
+        .sentence {
+            line-height: 2.5rem;
+        }
+        .word-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            padding: 20px;
+        }
+        /* CSS cho hiệu ứng rung khi sai */
+        .drop-zone.shake {
+            animation: shake 0.5s;
+            animation-iteration-count: 1;
+            border-color: #ef4444; /* Red-500 */
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-2xl p-6 md:p-10">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-6 text-center">
+            Word Forms Tiếng Anh (Luyện Thi Lớp 10)
+        </h1>
+        <p class="text-center text-gray-600 mb-8">
+            <span class="font-bold text-red-500">Kéo thả</span> từ tiếng Anh đúng vào ô trống để hoàn thành 40 câu sau. Mỗi 4 câu là các word form của một từ gốc.
+        </p>
+
+        <!-- Container chứa các từ để kéo -->
+        <div id="drag-words-container" class="bg-indigo-50 p-4 md:p-6 rounded-lg mb-8 shadow-inner">
+            <h2 class="text-xl font-bold text-indigo-700 mb-4">Kho Từ Vựng (Kéo Thả)</h2>
+            <div id="drag-words" class="word-container">
+                <!-- Các từ sẽ được thêm vào đây bằng JavaScript -->
+            </div>
+        </div>
+
+        <!-- Danh sách các câu hỏi -->
+        <div id="quiz-container" class="space-y-6">
+            <!-- Các câu hỏi sẽ được thêm vào đây bằng JavaScript -->
+        </div>
+
+        <!-- Thông báo hoàn thành -->
+        <div id="completion-message" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-sm transform transition duration-500" id="modal-content">
+                <svg class="mx-auto h-16 w-16 text-green-500 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="mt-4 text-2xl font-bold text-gray-900">HOÀN THÀNH XUẤT SẮC!</h3>
+                <p class="mt-2 text-gray-500">Bạn đã hoàn thành 40 câu hỏi và nắm vững các word form. Hãy tiếp tục luyện tập nhé!</p>
+                <button onclick="resetGame()" class="mt-4 w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 transform hover:scale-105">
+                    Làm Lại Bài Tập
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu 40 câu hỏi MỚI (10 từ gốc x 4 word forms)
+        const quizData = [
+            // 1. GLOBAL
+            { vn: "Quá trình **toàn cầu hóa** đã thay đổi thế giới.", en: "The process of _______ has changed the world.", answer: "globalization", hint: "Danh từ (N)" },
+            { vn: "Các công ty đang cố gắng **toàn cầu hóa** thương hiệu của họ.", en: "Companies are trying to _______ their brands.", answer: "globalize", hint: "Động từ (V)" },
+            { vn: "Đây là một vấn đề **toàn cầu** nghiêm trọng.", en: "This is a serious _______ issue.", answer: "global", hint: "Tính từ (Adj)" },
+            { vn: "Vấn đề này được công nhận **trên toàn cầu**.", en: "This problem is recognized _______.", answer: "globally", hint: "Trạng từ (Adv)" },
+            
+            // 2. CONSERVE
+            { vn: "Chúng ta phải tăng cường **bảo tồn** động vật hoang dã.", en: "We must promote wildlife _______.", answer: "conservation", hint: "Danh từ (N)" },
+            { vn: "Hãy **tiết kiệm** năng lượng ở nhà.", en: "We should _______ energy at home.", answer: "conserve", hint: "Động từ (V)" },
+            { vn: "Anh ấy có quan điểm khá **bảo thủ** về chính trị.", en: "He has rather _______ views on politics.", answer: "conservative", hint: "Tính từ (Adj)" },
+            { vn: "Cô ấy là một **nhà bảo tồn** nổi tiếng.", en: "She is a famous wildlife _______.", answer: "conservationist", hint: "Danh từ chỉ người (N)" },
+
+            // 3. CULTURE
+            { vn: "Chúng ta nên tôn trọng **văn hóa** địa phương.", en: "We should respect the local _______.", answer: "culture", hint: "Danh từ (N)" },
+            { vn: "Bạn nên **trau dồi** thói quen tốt.", en: "You should _______ good habits.", answer: "cultivate", hint: "Động từ (V)" },
+            { vn: "Những khác biệt **văn hóa** có thể gây ra hiểu lầm.", en: "_______ differences can cause misunderstanding.", answer: "cultural", hint: "Tính từ (Adj)" },
+            { vn: "Việt Nam là một quốc gia đa dạng về **văn hóa**.", en: "Vietnam is a _______ diverse country.", answer: "culturally", hint: "Trạng từ (Adv)" },
+            
+            // 4. ECONOMY
+            { vn: "Sự phục hồi **kinh tế** đang diễn ra chậm.", en: "The national _______ recovery is slow.", answer: "economy", hint: "Danh từ (N)" },
+            { vn: "Chúng tôi phải **tiết kiệm** tiền để mua nhà.", en: "We have to _______ to buy a house.", answer: "economize", hint: "Động từ (V)" },
+            { vn: "Chính sách **kinh tế** mới sẽ giúp ích cho người nghèo.", en: "The new _______ policy will help the poor.", answer: "economic", hint: "Tính từ (Adj)" },
+            { vn: "Chúng ta cần sử dụng tài nguyên một cách **kinh tế** (tiết kiệm).", en: "We need to use resources _______.", answer: "economically", hint: "Trạng từ (Adv)" },
+            
+            // 5. SUCCEED
+            { vn: "Chìa khóa **thành công** là làm việc chăm chỉ.", en: "The key to _______ is hard work.", answer: "success", hint: "Danh từ (N)" },
+            { vn: "Bạn sẽ **thành công** nếu bạn kiên trì.", en: "You will _______ if you persevere.", answer: "succeed", hint: "Động từ (V)" },
+            { vn: "Cô ấy đã có một sự nghiệp **thành công**.", en: "She had a very _______ career.", answer: "successful", hint: "Tính từ (Adj)" },
+            { vn: "Họ đã hoàn thành dự án **một cách thành công**.", en: "They completed the project _______.", answer: "successfully", hint: "Trạng từ (Adv)" },
+
+            // 6. INVESTIGATE
+            { vn: "Cảnh sát đang tiến hành một cuộc **điều tra**.", en: "The police are conducting an _______.", answer: "investigation", hint: "Danh từ (N)" },
+            { vn: "Họ sẽ **điều tra** nguyên nhân vụ tai nạn.", en: "They will _______ the cause of the accident.", answer: "investigate", hint: "Động từ (V)" },
+            { vn: "Anh ấy là một nhà báo **điều tra**.", en: "He is an _______ journalist.", answer: "investigative", hint: "Tính từ (Adj)" },
+            { vn: "Thám tử là một **điều tra viên** giỏi.", en: "The detective is a good _______.", answer: "investigator", hint: "Danh từ chỉ người (N)" },
+            
+            // 7. INNOVATE
+            { vn: "Công ty của họ nổi tiếng về sự **đổi mới**.", en: "Their company is known for its _______.", answer: "innovation", hint: "Danh từ (N)" },
+            { vn: "Họ phải **đổi mới** để duy trì tính cạnh tranh.", en: "They must _______ to stay competitive.", answer: "innovate", hint: "Động từ (V)" },
+            { vn: "Chúng tôi đang tìm kiếm các giải pháp **sáng tạo**.", en: "We are looking for _______ solutions.", answer: "innovative", hint: "Tính từ (Adj)" },
+            { vn: "Steve Jobs là một **nhà đổi mới** vĩ đại.", en: "Steve Jobs was a great _______.", answer: "innovator", hint: "Danh từ chỉ người (N)" },
+            
+            // 8. IMPRESS
+            { vn: "Lời nói của anh ấy tạo **ấn tượng** mạnh mẽ.", en: "His speech made a strong _______.", answer: "impression", hint: "Danh từ (N)" },
+            { vn: "Cô ấy luôn **gây ấn tượng** với tôi bằng sự chăm chỉ của mình.", en: "She always _______ me with her diligence.", answer: "impresses", hint: "Động từ (V) - Số ít", form: "V-s" },
+            { vn: "Thành tích của đội bóng rất **ấn tượng**.", en: "The team's performance was very _______.", answer: "impressive", hint: "Tính từ (Adj)" },
+            { vn: "Cô ấy đã hát **một cách ấn tượng**.", en: "She sang quite _______.", answer: "impressively", hint: "Trạng từ (Adv)" },
+            
+            // 9. RENEW
+            { vn: "Việc **gia hạn** hộ chiếu sẽ mất hai tuần.", en: "The passport _______ will take two weeks.", answer: "renewal", hint: "Danh từ (N)" },
+            { vn: "Chúng tôi cần phải **gia hạn** hợp đồng của mình.", en: "We need to _______ our contract.", answer: "renew", hint: "Động từ (V)" },
+            { vn: "Năng lượng **tái tạo** là tương lai.", en: "_______ energy is the future.", answer: "renewable", hint: "Tính từ (Adj)" },
+            { vn: "Ngôi nhà cần được **cải tạo** khẩn cấp.", en: "The house needs urgent _______.", answer: "renovation", hint: "Danh từ (N) - liên quan" },
+            
+            // 10. VARY
+            { vn: "Có rất nhiều **loại** rau củ ở chợ.", en: "There is a wide _______ of vegetables at the market.", answer: "variety", hint: "Danh từ (N)" },
+            { vn: "Giá cả có thể **khác nhau** tùy thuộc vào mùa.", en: "Prices may _______ depending on the season.", answer: "vary", hint: "Động từ (V)" },
+            { vn: "Anh ấy có nhiều sở thích **khác nhau**.", en: "He has _______ hobbies.", answer: "various", hint: "Tính từ (Adj)" },
+            { vn: "Các sự kiện đã được báo cáo **một cách khác nhau** trên các phương tiện truyền thông.", en: "The events were _______ reported in the media.", answer: "variously", hint: "Trạng từ (Adv)" }
+        ];
+
+        // Lấy tất cả các đáp án đúng để tạo các item kéo
+        const allAnswers = quizData.map(q => q.answer);
+
+        let completedCount = 0;
+
+        /**
+         * Xáo trộn thứ tự các phần tử trong mảng (thuật toán Fisher-Yates)
+         * @param {Array} array Mảng cần xáo trộn
+         * @returns {Array} Mảng đã xáo trộn
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /**
+         * Khởi tạo giao diện câu hỏi và các từ kéo thả
+         */
+        function initGame() {
+            const quizContainer = document.getElementById('quiz-container');
+            const dragWordsContainer = document.getElementById('drag-words');
+            
+            // Xóa nội dung cũ
+            quizContainer.innerHTML = '';
+            dragWordsContainer.innerHTML = '';
+            completedCount = 0;
+            document.getElementById('completion-message').classList.add('hidden');
+
+            // 1. Tạo các câu hỏi
+            quizData.forEach((item, index) => {
+                const questionNumber = index + 1;
+                const sentenceHtml = item.en.replace(
+                    "_______",
+                    `<span class="drop-zone" data-answer="${item.answer}" id="drop-${index}"></span>`
+                );
+                
+                // Thay thế từ tiếng Việt gạch chân (giả định)
+                const vnText = item.vn.replace(/(\*\*.*?\*\*)/, '<span class="font-semibold text-indigo-600">$1</span>');
+
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'p-3 md:p-4 bg-gray-50 border border-gray-200 rounded-lg transition duration-300 hover:shadow-md';
+                questionDiv.innerHTML = `
+                    <p class="text-sm font-medium text-gray-500 mb-1">Câu ${questionNumber}: ${item.hint}</p>
+                    <p class="text-gray-700 mb-2 sentence">${vnText}</p>
+                    <p class="text-lg font-mono text-gray-800">${sentenceHtml}</p>
+                `;
+                quizContainer.appendChild(questionDiv);
+            });
+
+            // 2. Tạo các từ kéo thả (đã xáo trộn)
+            const shuffledAnswers = shuffleArray([...allAnswers]);
+            shuffledAnswers.forEach((answer, index) => {
+                const dragItem = document.createElement('div');
+                dragItem.id = `drag-${index}`;
+                dragItem.className = 'drag-item bg-white text-gray-800 px-3 py-2 rounded-full text-center font-semibold text-sm border-2 border-indigo-400 hover:bg-indigo-100 shadow-lg';
+                dragItem.textContent = answer;
+                dragItem.setAttribute('draggable', true);
+                dragItem.addEventListener('dragstart', handleDragStart);
+                dragWordsContainer.appendChild(dragItem);
+            });
+
+            // 3. Thiết lập các vùng thả
+            document.querySelectorAll('.drop-zone').forEach(dropZone => {
+                dropZone.addEventListener('dragover', handleDragOver);
+                dropZone.addEventListener('dragenter', handleDragEnter);
+                dropZone.addEventListener('dragleave', handleDragLeave);
+                dropZone.addEventListener('drop', handleDrop);
+            });
+        }
+
+        let draggedElement = null;
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.dataTransfer.setData('text/plain', e.target.id);
+            // Thêm hiệu ứng kéo
+            setTimeout(() => e.target.classList.add('opacity-50', 'scale-95'), 0);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); // Cho phép thả
+            if (e.target.classList.contains('drop-zone') && !e.target.classList.contains('correct')) {
+                e.target.classList.add('hover');
+            }
+        }
+
+        function handleDragEnter(e) {
+            if (e.target.classList.contains('drop-zone') && !e.target.classList.contains('correct')) {
+                e.target.classList.add('hover');
+            }
+        }
+
+        function handleDragLeave(e) {
+            if (e.target.classList.contains('drop-zone')) {
+                e.target.classList.remove('hover');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropZone = e.target;
+
+            // Chỉ xử lý nếu thả vào drop-zone và chưa điền đúng
+            if (dropZone.classList.contains('drop-zone') && !dropZone.classList.contains('correct')) {
+                dropZone.classList.remove('hover');
+
+                const draggedId = e.dataTransfer.getData('text/plain');
+                const draggedItem = document.getElementById(draggedId);
+                const word = draggedItem.textContent;
+                const requiredAnswer = dropZone.getAttribute('data-answer');
+
+                // Kiểm tra đáp án
+                if (word === requiredAnswer) {
+                    // Đúng: Cố định từ
+                    completedCount++;
+                    
+                    // Thêm animation và class đúng
+                    dropZone.classList.add('correct', 'filled');
+                    dropZone.textContent = word;
+
+                    // Ẩn từ gốc và làm cho nó không thể kéo/thả nữa
+                    draggedItem.removeEventListener('dragstart', handleDragStart);
+                    draggedItem.classList.add('hidden'); 
+                    
+                    // Loại bỏ các sự kiện thả khỏi dropZone
+                    dropZone.removeEventListener('drop', handleDrop);
+                    dropZone.removeEventListener('dragover', handleDragOver);
+                    dropZone.removeEventListener('dragenter', handleDragEnter);
+                    dropZone.removeEventListener('dragleave', handleDragLeave);
+
+                    checkCompletion();
+
+                } else {
+                    // Sai: Bật lại từ kéo thả
+                    draggedItem.classList.remove('opacity-50', 'scale-95');
+                    
+                    // Thêm hiệu ứng rung nhẹ (đã thêm CSS vào <style> ở trên)
+                    dropZone.classList.add('shake');
+                    setTimeout(() => {
+                        dropZone.classList.remove('shake');
+                    }, 500);
+
+                    console.log('Sai. Thử lại!');
+                }
+            } else {
+                // Nếu thả vào nơi khác, đảm bảo từ kéo trở lại trạng thái ban đầu
+                draggedElement.classList.remove('opacity-50', 'scale-95');
+            }
+
+            // Đảm bảo từ kéo luôn trở lại trạng thái ban đầu sau khi thả (dù đúng hay sai)
+            if (draggedElement) {
+                draggedElement.classList.remove('opacity-50', 'scale-95');
+            }
+        }
+
+        /**
+         * Kiểm tra xem trò chơi đã hoàn thành chưa (40/40)
+         */
+        function checkCompletion() {
+            if (completedCount === quizData.length) {
+                document.getElementById('completion-message').classList.remove('hidden');
+                // Thêm animation scale cho modal
+                document.getElementById('modal-content').classList.add('scale-100');
+            }
+        }
+
+        /**
+         * Đặt lại trò chơi
+         */
+        function resetGame() {
+            document.getElementById('completion-message').classList.add('hidden');
+            document.getElementById('modal-content').classList.remove('scale-100');
+            initGame();
+        }
+
+        // Khởi tạo trò chơi khi tải trang
+        window.onload = initGame;
+    </script>
+</body>
+</html>
